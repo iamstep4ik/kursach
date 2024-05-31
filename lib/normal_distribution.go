@@ -4,6 +4,13 @@ import (
 	"math"
 )
 
+const (
+	E1 = 0.16 * float64((25))
+	E2 = 0.34 * float64(25)
+	E3 = E2
+	E4 = E1
+)
+
 func CalculateE(data map[string][]int) []float64 {
 	averages := make([]float64, len(data))
 	k := 0
@@ -114,4 +121,44 @@ func CalculateO4(data map[string][]int, sum []float64) []float64 {
 		k++
 	}
 	return o4
+}
+
+func CalculateX2(o1, o2, o3, o4 []float64) []float64 {
+	x2 := make([]float64, len(o1))
+
+	for i := 0; i < len(x2); i++ {
+		x2[i] = math.Pow(o1[i]-E1, 2)/E1 + math.Pow(o2[i]-E2, 2)/E2 + math.Pow(o3[i]-E3, 2)/E3 + math.Pow(o4[i]-E4, 2)/E4
+	}
+
+	return x2
+}
+
+func chiSquarePDF(x float64, df int) float64 {
+	if x <= 0 || df <= 0 {
+		return 0
+	}
+	return math.Pow(x, 0.5*float64(df)-1) * math.Exp(-0.5*x) / math.Gamma(0.5*float64(df))
+}
+
+func chiSquareCDFApprox(x float64, df int, numSteps int) float64 {
+	stepSize := x / float64(numSteps)
+	cdf := 0.0
+	for i := 0; i <= numSteps; i++ {
+		xVal := stepSize * float64(i)
+		pdfVal := chiSquarePDF(xVal, df)
+		if i == 0 || i == numSteps {
+			cdf += pdfVal * stepSize * 0.5
+		} else {
+			cdf += pdfVal * stepSize
+		}
+	}
+	return cdf
+}
+
+func ChiSquareRightTailProbability(x2 []float64, df int) []float64 {
+	probabilities := make([]float64, len(x2))
+	for i := 0; i < len(probabilities); i++ {
+		probabilities[i] = 1 - chiSquareCDFApprox(x2[i], df, 100)
+	}
+	return probabilities
 }

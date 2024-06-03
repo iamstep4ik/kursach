@@ -30,14 +30,11 @@ func Parse(file string) Data {
 
 	data := make(Data)
 	for key, matrix := range rawData {
-		i := 0
-		data[key] = make([]int, 25)
+		flatArray := make([]int, 0, 25)
 		for _, array := range matrix {
-			for _, value := range array {
-				data[key][i] = value
-				i++
-			}
+			flatArray = append(flatArray, array...)
 		}
+		data[key] = flatArray
 	}
 
 	return data

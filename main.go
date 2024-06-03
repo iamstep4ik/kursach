@@ -6,14 +6,13 @@ import (
 )
 
 func main() {
-	data := lib.Parse("test.json")
-	m := lib.InitializeMapNormal()
-	lib.CalulateAll(data, m)
-	fmt.Println("Normal Distribution")
-	lib.OutputTableNormal(m)
-	Um := lib.InitializeMapUniform(m)
-	lib.CalculateUniAll(data, Um)
-	fmt.Println("Uniform Distribution")
-	lib.OutputTableUniform(Um)
+	data := lib.Parse("data.json")
+	resultsNormal := lib.CalculateAllNormal(data)
+	fmt.Println("Normal Distribution:")
+	lib.PrintSortedResultsNormal(resultsNormal)
 
+	resultsUniform := lib.CalculateUniAll(data)
+	fmt.Println("Uniform Distribution:")
+	lib.PrintSortedResultsUniform(resultsUniform)
+	fmt.Println(lib.Conclusion(resultsNormal, resultsUniform))
 }

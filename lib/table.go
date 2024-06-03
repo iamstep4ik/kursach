@@ -3,59 +3,79 @@ package lib
 import (
 	"fmt"
 	"os"
+	"sort"
 	"text/tabwriter"
 )
 
-func OutputTableNormal(m []map[string]float64) {
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.Debug)
-
-	fmt.Fprintln(w, "Index\tmu\tsigma\tmu-sigma\tmu+sigma\to1\to2\to3\to4\te1\te2\te3\te4\tchi2\tchi2pr\t")
-
-	for i, mapInstance := range m {
-		fmt.Fprintf(w, "%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t\n",
-			i,
-			mapInstance["mu"],
-			mapInstance["sigma"],
-			mapInstance["mu-sigma"],
-			mapInstance["mu+sigma"],
-			mapInstance["o1"],
-			mapInstance["o2"],
-			mapInstance["o3"],
-			mapInstance["o4"],
-			mapInstance["e1"],
-			mapInstance["e2"],
-			mapInstance["e3"],
-			mapInstance["e4"],
-			mapInstance["chi2"],
-			mapInstance["chi2pr"])
-	}
-
-	w.Flush()
+type PathStatistics struct {
+	Path       string
+	Statistics []NormalStatistics
 }
 
-func OutputTableUniform(m []map[string]float64) {
+func outputTableNormal(results []NormalStatistics) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.Debug)
+	defer w.Flush()
 
-	fmt.Fprintln(w, "Index\tmu\tsigma\ta\tb\to1\to2\to3\to4\te1\te2\te3\te4\tchi2\tchi2pr\t")
+	fmt.Fprintln(w, "Path\tMu\tSigma\tMu-Sigma\tMu+Sigma\tO1\tO2\tO3\tO4\tE1\tE2\tE3\tE4\tChi2\tChi2Pr\t")
 
-	for i, mapInstance := range m {
-		fmt.Fprintf(w, "%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t\n",
-			i,
-			mapInstance["mu"],
-			mapInstance["sigma"],
-			mapInstance["a"],
-			mapInstance["b"],
-			mapInstance["o1"],
-			mapInstance["o2"],
-			mapInstance["o3"],
-			mapInstance["o4"],
-			mapInstance["e1"],
-			mapInstance["e2"],
-			mapInstance["e3"],
-			mapInstance["e4"],
-			mapInstance["chi2"],
-			mapInstance["chi2pr"])
+	for _, result := range results {
+		fmt.Fprintf(w, "%s\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t\n",
+			result.Path,
+			result.Mu,
+			result.Sigma,
+			result.MuSigma,
+			result.MuPlusSigma,
+			result.O1,
+			result.O2,
+			result.O3,
+			result.O4,
+			result.E1,
+			result.E2,
+			result.E3,
+			result.E4,
+			result.Chi2,
+			result.Chi2Pr)
 	}
+}
 
-	w.Flush()
+func PrintSortedResultsNormal(results []NormalStatistics) {
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Path < results[j].Path
+	})
+
+	outputTableNormal(results)
+}
+
+func outputTableUniform(results []UniformStatistics) {
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.Debug)
+	defer w.Flush()
+
+	fmt.Fprintln(w, "Path\tMu\tSigma\tA\tB\tO1\tO2\tO3\tO4\tE1\tE2\tE3\tE4\tChi2\tChi2Pr\t")
+
+	for _, result := range results {
+		fmt.Fprintf(w, "%s\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t\n",
+			result.Path,
+			result.Mu,
+			result.Sigma,
+			result.A,
+			result.B,
+			result.O1,
+			result.O2,
+			result.O3,
+			result.O4,
+			result.E1,
+			result.E2,
+			result.E3,
+			result.E4,
+			result.Chi2,
+			result.Chi2Pr)
+	}
+}
+
+func PrintSortedResultsUniform(results []UniformStatistics) {
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Path < results[j].Path
+	})
+
+	outputTableUniform(results)
 }

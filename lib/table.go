@@ -79,3 +79,41 @@ func PrintSortedResultsUniform(results []UniformStatistics) {
 
 	outputTableUniform(results)
 }
+
+func PrintRndNumTable(conclusion []string, rndNumNormals []RndNumNormal, rndNumUniforms []RndNumUniform) {
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.AlignRight)
+	defer w.Flush()
+
+	// Print header
+	fmt.Fprintln(w, "Path\tMu (Normal)\tSigma (Normal)\tZ (Normal)\tA (Uniform)\tB (Uniform)\t")
+
+	normalIndex, uniformIndex := 0, 0
+
+	// Iterate over conclusion and print RndNum results
+	for i, status := range conclusion {
+		fmt.Fprintf(w, "%d\t", i)
+
+		if status == "Нормальное" {
+			if normalIndex < len(rndNumNormals) {
+				fmt.Fprintf(w, "%f\t%f\t%f\t-\t-\t\n",
+					rndNumNormals[normalIndex].Mu,
+					rndNumNormals[normalIndex].Sigma,
+					rndNumNormals[normalIndex].Z,
+				)
+				normalIndex++
+			} else {
+				fmt.Fprintln(w, "-\t-\t-\t-\t-\t")
+			}
+		} else if status == "Равномерное" {
+			if uniformIndex < len(rndNumUniforms) {
+				fmt.Fprintf(w, "-\t-\t-\t%f\t%f\t\n",
+					rndNumUniforms[uniformIndex].A,
+					rndNumUniforms[uniformIndex].B,
+				)
+				uniformIndex++
+			} else {
+				fmt.Fprintln(w, "-\t-\t-\t-\t-\t")
+			}
+		}
+	}
+}

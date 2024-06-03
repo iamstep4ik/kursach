@@ -14,5 +14,8 @@ func main() {
 	resultsUniform := lib.CalculateUniAll(data)
 	fmt.Println("Uniform Distribution:")
 	lib.PrintSortedResultsUniform(resultsUniform)
-	fmt.Println(lib.Conclusion(resultsNormal, resultsUniform))
+	conclusion := lib.Conclusion(resultsNormal, resultsUniform)
+	fmt.Printf("Conclusion: %v\n", conclusion)
+	rndNumNormals, rndNumUniforms := lib.RndNum(conclusion, resultsNormal, resultsUniform)
+	lib.PrintRndNumTable(conclusion, rndNumNormals, rndNumUniforms)
 }

@@ -2,6 +2,7 @@ package lib
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"sort"
 	"text/tabwriter"
@@ -80,40 +81,118 @@ func PrintSortedResultsUniform(results []UniformStatistics) {
 	outputTableUniform(results)
 }
 
-func PrintRndNumTable(conclusion []string, rndNumNormals []RndNumNormal, rndNumUniforms []RndNumUniform) {
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.AlignRight)
-	defer w.Flush()
+func PrintRndNumTable(conclusions []Conclusion, rndNumNormals []RndNumNormal, rndNumUniforms []RndNumUniform) {
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.Debug)
 
 	// Print header
-	fmt.Fprintln(w, "Path\tMu (Normal)\tSigma (Normal)\tZ (Normal)\tA (Uniform)\tB (Uniform)\t")
+	fmt.Fprintln(w, "Path\tType\tMu (Normal)\tSigma (Normal)\tZ (Normal)\tA (Uniform)\tB (Uniform)\t")
 
-	normalIndex, uniformIndex := 0, 0
+	normalMap := make(map[string]RndNumNormal)
+	uniformMap := make(map[string]RndNumUniform)
 
-	// Iterate over conclusion and print RndNum results
-	for i, status := range conclusion {
-		fmt.Fprintf(w, "%d\t", i)
+	// Store RndNumNormal structs in a map for easy access
+	for _, rndNum := range rndNumNormals {
+		normalMap[rndNum.Path] = rndNum
+	}
 
-		if status == "Нормальное" {
-			if normalIndex < len(rndNumNormals) {
-				fmt.Fprintf(w, "%f\t%f\t%f\t-\t-\t\n",
-					rndNumNormals[normalIndex].Mu,
-					rndNumNormals[normalIndex].Sigma,
-					rndNumNormals[normalIndex].Z,
-				)
-				normalIndex++
+	// Store RndNumUniform structs in a map for easy access
+	for _, rndNum := range rndNumUniforms {
+		uniformMap[rndNum.Path] = rndNum
+	}
+
+	// Iterate over conclusions and print RndNum results
+	for _, conclusion := range conclusions {
+		// Print path and distribution type
+		fmt.Fprintf(w, "%s\t%s\t", conclusion.Path, conclusion.Type)
+
+		// Print normal distribution values if available
+		if conclusion.Type == "Нормальное" {
+			rndNumStruct, ok := normalMap[conclusion.Path]
+			if ok {
+				fmt.Fprintf(w, "%.4f\t%.4f\t%.4f\t-\t-\t\n", rndNumStruct.Mu, rndNumStruct.Sigma, rndNumStruct.Z)
 			} else {
-				fmt.Fprintln(w, "-\t-\t-\t-\t-\t")
+				fmt.Fprintln(w, "-\t-\t-\t-\t-")
 			}
-		} else if status == "Равномерное" {
-			if uniformIndex < len(rndNumUniforms) {
-				fmt.Fprintf(w, "-\t-\t-\t%f\t%f\t\n",
-					rndNumUniforms[uniformIndex].A,
-					rndNumUniforms[uniformIndex].B,
-				)
-				uniformIndex++
+		} else if conclusion.Type == "Равномерное" {
+			// Print uniform distribution values if available
+			rndNumStruct, ok := uniformMap[conclusion.Path]
+			if ok {
+				fmt.Fprintf(w, "-\t-\t-\t%.4f\t%.4f\n", rndNumStruct.A, rndNumStruct.B)
 			} else {
-				fmt.Fprintln(w, "-\t-\t-\t-\t-\t")
+				fmt.Fprintln(w, "-\t-\t-\t-\t-")
 			}
 		}
 	}
+
+	w.Flush()
+}
+
+func OutputTableNet(matrix [][]float64) {
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.Debug)
+
+	// Print header
+	fmt.Fprintln(w, "Path\t1\t2\t3\t4\t5\t6\t7\t")
+
+	// Iterate over each row in the matrix
+	for i, row := range matrix {
+		fmt.Fprintf(w, "%d\t", i+1)
+
+		// Print the values in the row
+		for _, value := range row {
+			if math.IsInf(value, 1) {
+				fmt.Fprintf(w, "0.0000\t")
+			} else {
+				fmt.Fprintf(w, "%.4f\t", value)
+			}
+		}
+
+		fmt.Fprintln(w)
+	}
+
+	w.Flush()
+}
+
+func OutputDistanceMatrix(distances [][]float64, outer, inner []float64) {
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.Debug)
+	defer w.Flush()
+
+	// Print header row
+	fmt.Fprintf(w, "Path\t")
+	for i := range distances {
+		fmt.Fprintf(w, "%d\t", i+1)
+	}
+	fmt.Fprintf(w, "Outer\n")
+
+	// Print distance matrix and outer values
+	for i, row := range distances {
+		fmt.Fprintf(w, "%d\t", i+1)
+		for _, d := range row {
+			if math.IsInf(d, 1) {
+				fmt.Fprintf(w, "0.0000\t")
+			} else {
+				fmt.Fprintf(w, "%.4f\t", d)
+			}
+		}
+		fmt.Fprintf(w, "%.4f\n", outer[i])
+	}
+
+	// Print inner values
+	fmt.Fprintf(w, "Inner\t")
+	for _, v := range inner {
+		fmt.Fprintf(w, "%.4f\t", v)
+	}
+	fmt.Fprintf(w, "\n")
+}
+
+func OutputResultModelTable(minOuter, minInner, sum float64) {
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.Debug)
+	defer w.Flush()
+
+	// Print header row
+	fmt.Fprintf(w, "Metric\tValue\n")
+
+	// Print result rows
+	fmt.Fprintf(w, "Min Outer\t%.4f\n", minOuter)
+	fmt.Fprintf(w, "Min Inner\t%.4f\n", minInner)
+	fmt.Fprintf(w, "Sum\t%.4f\n", sum)
 }

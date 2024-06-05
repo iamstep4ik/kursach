@@ -7,6 +7,13 @@ import (
 	"time"
 )
 
+type ResultModel struct {
+	Index       int
+	OuterRadius float64
+	InnerRadius float64
+	Sum         float64
+}
+
 func RandWeightenedNetwork(data Data, conclusions []Conclusion) [][]float64 {
 	rand.Seed(time.Now().UnixNano())
 	r := rand.Float64()
@@ -110,16 +117,24 @@ func FindOuterAndInnerRadius(matrix [][]float64) ([]float64, []float64) {
 	return outer, inner
 }
 
-func ResultModel(outer, inner []float64) (float64, float64, float64) {
-	minOuter, minInner, sum := math.Inf(1), math.Inf(1), 0.0
+func CalculateResultModel(outer, inner []float64) []ResultModel {
+	res := make([]ResultModel, len(outer))
 	for i := range outer {
-		if outer[i] < minOuter {
-			minOuter = outer[i]
-		}
-		if inner[i] < minInner {
-			minInner = inner[i]
+		res[i].Index = i + 1
+		res[i].OuterRadius = outer[i]
+		res[i].InnerRadius = inner[i]
+		res[i].Sum = outer[i] + inner[i]
+	}
+
+	return res
+}
+
+func FindMinSumModel(models []ResultModel) ResultModel {
+	minModel := models[0]
+	for _, model := range models[1:] {
+		if model.Sum < minModel.Sum {
+			minModel = model
 		}
 	}
-	sum = minOuter + minInner
-	return minOuter, minInner, sum
+	return minModel
 }

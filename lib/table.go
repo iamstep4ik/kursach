@@ -184,15 +184,28 @@ func OutputDistanceMatrix(distances [][]float64, outer, inner []float64) {
 	fmt.Fprintf(w, "\n")
 }
 
-func OutputResultModelTable(minOuter, minInner, sum float64) {
+func OutputResultTable(results []ResultModel) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.Debug)
 	defer w.Flush()
 
 	// Print header row
-	fmt.Fprintf(w, "Metric\tValue\n")
+	fmt.Fprintf(w, "Node\tOuter Radius\tInner Radius\tSum\n")
 
-	// Print result rows
-	fmt.Fprintf(w, "Min Outer\t%.4f\n", minOuter)
-	fmt.Fprintf(w, "Min Inner\t%.4f\n", minInner)
-	fmt.Fprintf(w, "Sum\t%.4f\n", sum)
+	// Print each result
+	for _, result := range results {
+		fmt.Fprintf(w, "%d\t%.4f\t%.4f\t%.4f\n",
+			result.Index, result.OuterRadius, result.InnerRadius, result.Sum)
+	}
+}
+
+func OutputMinSumModel(minModel ResultModel) {
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.Debug)
+	defer w.Flush()
+
+	// Print header row
+	fmt.Fprintf(w, "Node\tOuter Radius\tInner Radius\tSum\n")
+
+	// Print the minModel
+	fmt.Fprintf(w, "%d\t%.4f\t%.4f\t%.4f\n",
+		minModel.Index, minModel.OuterRadius, minModel.InnerRadius, minModel.Sum)
 }

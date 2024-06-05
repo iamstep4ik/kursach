@@ -26,6 +26,8 @@ func main() {
 	outer, inner := lib.FindOuterAndInnerRadius(distm)
 	lib.OutputDistanceMatrix(distm, outer, inner)
 	fmt.Println("Results of modelling:")
-	minOuter, minInner, sum := lib.ResultModel(outer, inner)
-	lib.OutputResultModelTable(minOuter, minInner, sum)
+	res := lib.CalculateResultModel(outer, inner)
+	lib.OutputResultTable(res)
+	fmt.Println("Answer:")
+	lib.OutputMinSumModel(lib.FindMinSumModel(res))
 }

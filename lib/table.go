@@ -2,10 +2,9 @@ package lib
 
 import (
 	"fmt"
+	"html"
 	"math"
-	"os"
 	"sort"
-	"text/tabwriter"
 )
 
 type PathStatistics struct {
@@ -13,199 +12,170 @@ type PathStatistics struct {
 	Statistics []NormalStatistics
 }
 
-func outputTableNormal(results []NormalStatistics) {
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.Debug)
-	defer w.Flush()
-
-	fmt.Fprintln(w, "Path\tMu\tSigma\tMu-Sigma\tMu+Sigma\tO1\tO2\tO3\tO4\tE1\tE2\tE3\tE4\tChi2\tChi2Pr\t")
+func outputTableNormal(results []NormalStatistics) string {
+	htmlContent := "<h2>Нормальное Распределение</h2>"
+	htmlContent += "<table border='1'>"
+	htmlContent += "<tr><th>Path</th><th>Mu</th><th>Sigma</th><th>Mu-Sigma</th><th>Mu+Sigma</th><th>O1</th><th>O2</th><th>O3</th><th>O4</th><th>E1</th><th>E2</th><th>E3</th><th>E4</th><th>Chi2</th><th>Chi2Pr</th></tr>"
 
 	for _, result := range results {
-		fmt.Fprintf(w, "%s\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t\n",
-			result.Path,
-			result.Mu,
-			result.Sigma,
-			result.MuSigma,
-			result.MuPlusSigma,
-			result.O1,
-			result.O2,
-			result.O3,
-			result.O4,
-			result.E1,
-			result.E2,
-			result.E3,
-			result.E4,
-			result.Chi2,
-			result.Chi2Pr)
+		htmlContent += fmt.Sprintf(
+			"<tr><td>%s</td><td>%.4f</td><td>%.4f</td><td>%.4f</td><td>%.4f</td><td>%.4f</td><td>%.4f</td><td>%.4f</td><td>%.4f</td><td>%.4f</td><td>%.4f</td><td>%.4f</td><td>%.4f</td><td>%.4f</td><td>%.4f</td></tr>",
+			html.EscapeString(result.Path), result.Mu, result.Sigma, result.MuSigma, result.MuPlusSigma,
+			result.O1, result.O2, result.O3, result.O4, result.E1, result.E2, result.E3, result.E4, result.Chi2, result.Chi2Pr)
 	}
+
+	htmlContent += "</table>"
+	return htmlContent
 }
 
-func PrintSortedResultsNormal(results []NormalStatistics) {
+func PrintSortedResultsNormal(results []NormalStatistics) string {
 	sort.Slice(results, func(i, j int) bool {
 		return results[i].Path < results[j].Path
 	})
 
-	outputTableNormal(results)
+	return outputTableNormal(results)
 }
 
-func outputTableUniform(results []UniformStatistics) {
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.Debug)
-	defer w.Flush()
-
-	fmt.Fprintln(w, "Path\tMu\tSigma\tA\tB\tO1\tO2\tO3\tO4\tE1\tE2\tE3\tE4\tChi2\tChi2Pr\t")
+func outputTableUniform(results []UniformStatistics) string {
+	htmlContent := "<h2>Равномерное Распределение</h2>"
+	htmlContent += "<table border='1'>"
+	htmlContent += "<tr><th>Path</th><th>Mu</th><th>Sigma</th><th>A</th><th>B</th><th>O1</th><th>O2</th><th>O3</th><th>O4</th><th>E1</th><th>E2</th><th>E3</th><th>E4</th><th>Chi2</th><th>Chi2Pr</th></tr>"
 
 	for _, result := range results {
-		fmt.Fprintf(w, "%s\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t\n",
-			result.Path,
-			result.Mu,
-			result.Sigma,
-			result.A,
-			result.B,
-			result.O1,
-			result.O2,
-			result.O3,
-			result.O4,
-			result.E1,
-			result.E2,
-			result.E3,
-			result.E4,
-			result.Chi2,
-			result.Chi2Pr)
+		htmlContent += fmt.Sprintf(
+			"<tr><td>%s</td><td>%.4f</td><td>%.4f</td><td>%.4f</td><td>%.4f</td><td>%.4f</td><td>%.4f</td><td>%.4f</td><td>%.4f</td><td>%.4f</td><td>%.4f</td><td>%.4f</td><td>%.4f</td><td>%.4f</td><td>%.4f</td></tr>",
+			html.EscapeString(result.Path), result.Mu, result.Sigma, result.A, result.B,
+			result.O1, result.O2, result.O3, result.O4, result.E1, result.E2, result.E3, result.E4, result.Chi2, result.Chi2Pr)
 	}
+
+	htmlContent += "</table>"
+	return htmlContent
 }
 
-func PrintSortedResultsUniform(results []UniformStatistics) {
+func PrintSortedResultsUniform(results []UniformStatistics) string {
 	sort.Slice(results, func(i, j int) bool {
 		return results[i].Path < results[j].Path
 	})
 
-	outputTableUniform(results)
+	return outputTableUniform(results)
 }
 
-func PrintRndNumTable(conclusions []Conclusion, rndNumNormals []RndNumNormal, rndNumUniforms []RndNumUniform) {
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.Debug)
-
-	// Print header
-	fmt.Fprintln(w, "Path\tType\tMu (Normal)\tSigma (Normal)\tZ (Normal)\tA (Uniform)\tB (Uniform)\t")
+func PrintRndNumTable(conclusions []Conclusion, rndNumNormals []RndNumNormal, rndNumUniforms []RndNumUniform) string {
+	htmlContent := "<h2>Генерация случайного числа</h2>"
+	htmlContent += "<table border='1'>"
+	htmlContent += "<tr><th>Path</th><th>Type</th><th>Mu (Normal)</th><th>Sigma (Normal)</th><th>Z (Normal)</th><th>A (Uniform)</th><th>B (Uniform)</th></tr>"
 
 	normalMap := make(map[string]RndNumNormal)
 	uniformMap := make(map[string]RndNumUniform)
 
-	// Store RndNumNormal structs in a map for easy access
 	for _, rndNum := range rndNumNormals {
 		normalMap[rndNum.Path] = rndNum
 	}
 
-	// Store RndNumUniform structs in a map for easy access
 	for _, rndNum := range rndNumUniforms {
 		uniformMap[rndNum.Path] = rndNum
 	}
 
-	// Iterate over conclusions and print RndNum results
 	for _, conclusion := range conclusions {
-		// Print path and distribution type
-		fmt.Fprintf(w, "%s\t%s\t", conclusion.Path, conclusion.Type)
+		htmlContent += fmt.Sprintf("<tr><td>%s</td><td>%s</td>", html.EscapeString(conclusion.Path), conclusion.Type)
 
-		// Print normal distribution values if available
 		if conclusion.Type == "Нормальное" {
 			rndNumStruct, ok := normalMap[conclusion.Path]
 			if ok {
-				fmt.Fprintf(w, "%.4f\t%.4f\t%.4f\t-\t-\t\n", rndNumStruct.Mu, rndNumStruct.Sigma, rndNumStruct.Z)
+				htmlContent += fmt.Sprintf("<td>%.4f</td><td>%.4f</td><td>%.4f</td><td>-</td><td>-</td></tr>",
+					rndNumStruct.Mu, rndNumStruct.Sigma, rndNumStruct.Z)
 			} else {
-				fmt.Fprintln(w, "-\t-\t-\t-\t-")
+				htmlContent += "<td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>"
 			}
 		} else if conclusion.Type == "Равномерное" {
-			// Print uniform distribution values if available
 			rndNumStruct, ok := uniformMap[conclusion.Path]
 			if ok {
-				fmt.Fprintf(w, "-\t-\t-\t%.4f\t%.4f\n", rndNumStruct.A, rndNumStruct.B)
+				htmlContent += fmt.Sprintf("<td>-</td><td>-</td><td>-</td><td>%.4f</td><td>%.4f</td></tr>",
+					rndNumStruct.A, rndNumStruct.B)
 			} else {
-				fmt.Fprintln(w, "-\t-\t-\t-\t-")
+				htmlContent += "<td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>"
 			}
 		}
 	}
 
-	w.Flush()
+	htmlContent += "</table>"
+	return htmlContent
 }
 
-func OutputTableNet(matrix [][]float64) {
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.Debug)
+func OutputTableNet(matrix [][]float64) string {
+	htmlContent := "<h2>Случайная взвешенная сеть</h2>"
+	htmlContent += "<table border='1'>"
+	htmlContent += "<tr><th>Path</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th></tr>"
 
-	// Print header
-	fmt.Fprintln(w, "Path\t1\t2\t3\t4\t5\t6\t7\t")
-
-	// Iterate over each row in the matrix
 	for i, row := range matrix {
-		fmt.Fprintf(w, "%d\t", i+1)
+		htmlContent += fmt.Sprintf("<tr><td>%d</td>", i+1)
 
-		// Print the values in the row
 		for _, value := range row {
 			if math.IsInf(value, 1) {
-				fmt.Fprintf(w, "0.0000\t")
+				htmlContent += "<td>0.0000</td>"
 			} else {
-				fmt.Fprintf(w, "%.4f\t", value)
+				htmlContent += fmt.Sprintf("<td>%.4f</td>", value)
 			}
 		}
 
-		fmt.Fprintln(w)
+		htmlContent += "</tr>"
 	}
 
-	w.Flush()
+	htmlContent += "</table>"
+	return htmlContent
 }
 
-func OutputDistanceMatrix(distances [][]float64, outer, inner []float64) {
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.Debug)
-	defer w.Flush()
-
-	// Print header row
-	fmt.Fprintf(w, "Path\t")
+func OutputDistanceMatrix(distances [][]float64, outer, inner []float64) string {
+	htmlContent := "<h2>Матрица Расстояний</h2>"
+	htmlContent += "<table border='1'>"
+	htmlContent += "<tr><th>Path</th>"
 	for i := range distances {
-		fmt.Fprintf(w, "%d\t", i+1)
+		htmlContent += fmt.Sprintf("<th>%d</th>", i+1)
 	}
-	fmt.Fprintf(w, "Outer\n")
+	htmlContent += "<th>Outer</th></tr>"
 
-	// Print distance matrix and outer values
 	for i, row := range distances {
-		fmt.Fprintf(w, "%d\t", i+1)
+		htmlContent += fmt.Sprintf("<tr><td>%d</td>", i+1)
 		for _, d := range row {
 			if math.IsInf(d, 1) {
-				fmt.Fprintf(w, "0.0000\t")
+				htmlContent += "<td>0.0000</td>"
 			} else {
-				fmt.Fprintf(w, "%.4f\t", d)
+				htmlContent += fmt.Sprintf("<td>%.4f</td>", d)
 			}
 		}
-		fmt.Fprintf(w, "%.4f\n", outer[i])
+		htmlContent += fmt.Sprintf("<td>%.4f</td></tr>", outer[i])
 	}
 
-	// Print inner values
-	fmt.Fprintf(w, "Inner\t")
+	htmlContent += "<tr><td>Inner</td>"
 	for _, v := range inner {
-		fmt.Fprintf(w, "%.4f\t", v)
+		htmlContent += fmt.Sprintf("<td>%.4f</td>", v)
 	}
-	fmt.Fprintf(w, "\n")
+	htmlContent += "</tr></table>"
+	return htmlContent
 }
 
-func OutputResultTable(results []ResultModel) {
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.Debug)
-	defer w.Flush()
+func OutputResultTable(results []ResultModel) string {
+	htmlContent := "<h2>Результирующая таблица</h2>"
+	htmlContent += "<table border='1'>"
+	htmlContent += "<tr><th>Node</th><th>Outer Radius</th><th>Inner Radius</th><th>Sum</th></tr>"
 
-	// Print header row
-	fmt.Fprintf(w, "Node\tOuter Radius\tInner Radius\tSum\n")
-
-	// Print each result
 	for _, result := range results {
-		fmt.Fprintf(w, "%d\t%.4f\t%.4f\t%.4f\n",
+		htmlContent += fmt.Sprintf("<tr><td>%d</td><td>%.4f</td><td>%.4f</td><td>%.4f</td></tr>",
 			result.Index, result.OuterRadius, result.InnerRadius, result.Sum)
 	}
+
+	htmlContent += "</table>"
+	return htmlContent
 }
 
-func OutputMinSumModel(minModel ResultModel) {
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.Debug)
-	defer w.Flush()
+func OutputMinSumModel(minModel ResultModel) string {
+	htmlContent := "<h2>Результат моделирования</h2>"
+	htmlContent += "<table border='1'>"
+	htmlContent += "<tr><th>Node</th><th>Outer Radius</th><th>Inner Radius</th><th>Sum</th></tr>"
 
-	// Print header row
-	fmt.Fprintf(w, "Node\tOuter Radius\tInner Radius\tSum\n")
-
-	// Print the minModel
-	fmt.Fprintf(w, "%d\t%.4f\t%.4f\t%.4f\n",
+	htmlContent += fmt.Sprintf("<tr><td>%d</td><td>%.4f</td><td>%.4f</td><td>%.4f</td></tr>",
 		minModel.Index, minModel.OuterRadius, minModel.InnerRadius, minModel.Sum)
+
+	htmlContent += "</table>"
+	return htmlContent
 }

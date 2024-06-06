@@ -3,6 +3,7 @@ package lib
 import (
 	"fmt"
 	"html"
+	"log"
 	"math"
 	"sort"
 )
@@ -10,6 +11,40 @@ import (
 type PathStatistics struct {
 	Path       string
 	Statistics []NormalStatistics
+}
+
+func PrintTableHTML(data Data) string {
+	// Extract and sort keys
+	keys := make([]string, 0, len(data))
+	for key := range data {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	// Generate HTML table
+	htmlContent := "<h2>Исходные данные</h2>"
+	htmlContent += "<table border='1'>"
+	htmlContent += "<tr><th>Path</th>"
+	for i := 0; i < 5; i++ {
+		htmlContent += "<th>9:00</th><th>12:00</th><th>15:00</th><th>18:00</th><th>21:00</th>"
+	}
+	htmlContent += "</tr>"
+
+	// Write each sorted key and its values
+	for _, key := range keys {
+		values := data[key]
+		if len(values) != 25 {
+			log.Fatalf("Error: expected 25 values for key %s, got %d", key, len(values))
+		}
+		htmlContent += fmt.Sprintf("<tr><td>%s</td>", html.EscapeString(key))
+		for i := 0; i < 25; i += 5 {
+			htmlContent += fmt.Sprintf("<td>%d</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td>", values[i], values[i+1], values[i+2], values[i+3], values[i+4])
+		}
+		htmlContent += "</tr>"
+	}
+
+	htmlContent += "</table>"
+	return htmlContent
 }
 
 func outputTableNormal(results []NormalStatistics) string {
@@ -65,6 +100,7 @@ func PrintRndNumTable(conclusions []Conclusion, rndNumNormals []RndNumNormal, rn
 	htmlContent += "<table border='1'>"
 	htmlContent += "<tr><th>Path</th><th>Type</th><th>Mu (Normal)</th><th>Sigma (Normal)</th><th>Z (Normal)</th><th>A (Uniform)</th><th>B (Uniform)</th></tr>"
 
+	// Create maps for normal and uniform random numbers
 	normalMap := make(map[string]RndNumNormal)
 	uniformMap := make(map[string]RndNumUniform)
 
@@ -76,22 +112,26 @@ func PrintRndNumTable(conclusions []Conclusion, rndNumNormals []RndNumNormal, rn
 		uniformMap[rndNum.Path] = rndNum
 	}
 
+	// Sort conclusions by path
+	sort.Slice(conclusions, func(i, j int) bool {
+		return conclusions[i].Path < conclusions[j].Path
+	})
+
+	// Iterate through sorted conclusions and generate table rows
 	for _, conclusion := range conclusions {
 		htmlContent += fmt.Sprintf("<tr><td>%s</td><td>%s</td>", html.EscapeString(conclusion.Path), conclusion.Type)
 
 		if conclusion.Type == "Нормальное" {
-			rndNumStruct, ok := normalMap[conclusion.Path]
-			if ok {
+			if rndNum, ok := normalMap[conclusion.Path]; ok {
 				htmlContent += fmt.Sprintf("<td>%.4f</td><td>%.4f</td><td>%.4f</td><td>-</td><td>-</td></tr>",
-					rndNumStruct.Mu, rndNumStruct.Sigma, rndNumStruct.Z)
+					rndNum.Mu, rndNum.Sigma, rndNum.Z)
 			} else {
 				htmlContent += "<td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>"
 			}
 		} else if conclusion.Type == "Равномерное" {
-			rndNumStruct, ok := uniformMap[conclusion.Path]
-			if ok {
+			if rndNum, ok := uniformMap[conclusion.Path]; ok {
 				htmlContent += fmt.Sprintf("<td>-</td><td>-</td><td>-</td><td>%.4f</td><td>%.4f</td></tr>",
-					rndNumStruct.A, rndNumStruct.B)
+					rndNum.A, rndNum.B)
 			} else {
 				htmlContent += "<td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>"
 			}
@@ -101,7 +141,6 @@ func PrintRndNumTable(conclusions []Conclusion, rndNumNormals []RndNumNormal, rn
 	htmlContent += "</table>"
 	return htmlContent
 }
-
 func OutputTableNet(matrix [][]float64) string {
 	htmlContent := "<h2>Случайная взвешенная сеть</h2>"
 	htmlContent += "<table border='1'>"

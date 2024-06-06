@@ -20,6 +20,7 @@ func FormData() []float64 {
 		outer, inner := FindOuterAndInnerRadius(distm)
 		res := CalculateResultModel(outer, inner)
 		min := FindMinSumModel(res)
+		fmt.Printf("Iteration %d: Min Index: %d\n", i, min.Index)
 		switch min.Index {
 		case 1:
 			dataset[0]++

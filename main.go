@@ -53,6 +53,8 @@ func main() {
 		htmlContent += fmt.Sprint("<img src='pics/map.png' alt='Map'/>")
 		htmlContent += "<h2>Граф</h2>"
 		htmlContent += fmt.Sprint("<img src='pics/graph.png' alt='Graph'/>")
+		htmlContent += lib.PrintTableHTML(data)
+		htmlContent += "<br><br>"
 		htmlContent += lib.PrintSortedResultsNormal(resultsNormal)
 		htmlContent += "<br><br>"
 		htmlContent += lib.PrintSortedResultsUniform(resultsUniform)
